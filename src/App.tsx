@@ -1,10 +1,11 @@
 import './styles/gloabal.css'
-import { Component, createSignal, JSX } from 'solid-js';
+import { Component, createSignal, createEffect, onMount } from 'solid-js';
 import { css } from '@emotion/css';
 import { colors } from './styles/colors';
 import { spacing } from './styles/common';
 import { typography } from './styles/typography';
-import { FaSolidExpand } from 'solid-icons/fa';
+import { commonStyles } from './styles/common';
+import { FaSolidExpand, FaSolidPlay, FaSolidPause, FaSolidForward } from 'solid-icons/fa';
 import { TrafficLight } from './TrafficLight';
 import { LoadGraph } from './LoadGraph';
 import { EnergyInsights } from './EnergyInsights';
@@ -14,10 +15,12 @@ import { BillEstimator } from './BillEstimator';
 import { CarbonFootprintCalculator } from './CarbonFootprintCalculator';
 import { CartoonImages } from './CartoonImages';
 import { Clock } from './Clock';
+import { createTimeSimulator } from './TimeSimulator';
+import { simulationStore } from './store/simulationStore';
 
 type ComponentKey = 'LoadGraph' | 'TrafficLight' | 'GamificationIncentives' | 'BillEstimator' | 'CarbonFootprintCalculator';
 
-const componentMap: Record<ComponentKey, Component<{}>> = {
+const componentMap: Record<ComponentKey, Component<{ currentTime: () => number }>> = {
   LoadGraph,
   TrafficLight,
   EnergyInsights,
@@ -28,6 +31,60 @@ const componentMap: Record<ComponentKey, Component<{}>> = {
 
 const App: Component = () => {
   const [mainView, setMainView] = createSignal<ComponentKey>('LoadGraph');
+  const { 
+    setSimulationSpeed, 
+    togglePlayPause, 
+    jumpToTime, 
+    isPlaying, 
+    speed,
+    advanceTime
+  } = createTimeSimulator(simulationStore.state.currentTime, (newTime) => simulationStore.setCurrentTime(newTime));
+
+  onMount(() => {
+    simulationStore.initializeData();
+  });
+
+  const [errorMessage, setErrorMessage] = createSignal('');
+  const [manualSpeed, setManualSpeed] = createSignal(1);
+
+  const handleSpeedChange = (newSpeed: number) => {
+    if (newSpeed >= 0.1 && newSpeed <= 24) {
+      setManualSpeed(newSpeed);
+      setErrorMessage('');
+    } else {
+      setErrorMessage('Invalid speed. Please use a value between 0.1 and 24 hours/second.');
+    }
+  };
+
+  const handlePlayPause = () => {
+    if (!isPlaying()) {
+      setSimulationSpeed(manualSpeed());
+    }
+    togglePlayPause();
+  };
+
+  const handleAdvanceTime = (minutes: number) => {
+    if (isPlaying()) {
+      togglePlayPause();
+    }
+    advanceTime(minutes);
+  };
+
+  createEffect(() => {
+    if (!isPlaying()) {
+      setSimulationSpeed(0);
+    }
+  });
+
+  const handleDateChange = (e: Event) => {
+    const newDate = new Date((e.target as HTMLInputElement).value);
+    if (isNaN(newDate.getTime())) {
+      setErrorMessage('Invalid date. Please enter a valid date and time.');
+    } else {
+      jumpToTime(newDate.getTime());
+      setErrorMessage('');
+    }
+  };
 
   const styles = {
     mainContainer: css`
@@ -105,18 +162,93 @@ const App: Component = () => {
         transform: scale(1.1);
       }
     `,
+    timeControls: css`
+      display: flex;
+      align-items: center;
+      gap: ${spacing.md};
+      background-color: ${colors.surface};
+      padding: ${spacing.sm} ${spacing.md};
+      border-radius: 8px;
+    `,
+    speedControl: css`
+      display: flex;
+      align-items: center;
+      gap: ${spacing.sm};
+    `,
+    speedButton: css`
+      ${commonStyles.button}
+      ${commonStyles.primaryButton}
+      padding: ${spacing.xs} ${spacing.sm};
+      font-size: ${typography.fontSize.sm};
+    `,
+    speedDisplay: css`
+      font-size: ${typography.fontSize.lg};
+      font-weight: ${typography.fontWeight.bold};
+      color: ${colors.primary};
+      min-width: 60px;
+      text-align: center;
+    `,
+    playPauseButton: css`
+      ${commonStyles.button}
+      ${commonStyles.primaryButton}
+      padding: ${spacing.sm};
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    `,
+    advanceButton: css`
+      ${commonStyles.button}
+      ${commonStyles.secondaryButton}
+      padding: ${spacing.xs} ${spacing.sm};
+      font-size: ${typography.fontSize.sm};
+    `,
+    input: css`
+      ${commonStyles.input}
+      width: auto;
+    `,
+    errorMessage: css`
+      color: ${colors.error};
+      font-size: ${typography.fontSize.sm};
+      margin-top: ${spacing.xs};
+    `,
   };
 
   return (
     <div class={styles.mainContainer}>
       <header class={styles.header}>
         <h1 class={styles.title}>Energy Traffic Lights</h1>
-        <Clock />
+        <Clock currentTime={simulationStore.state.currentTime} />
+        <div class={styles.timeControls}>
+          <button class={styles.playPauseButton} onClick={handlePlayPause} title={isPlaying() ? 'Pause' : 'Play'}>
+            {isPlaying() ? <FaSolidPause size={20} /> : <FaSolidPlay size={20} />}
+          </button>
+          <div class={styles.speedControl}>
+            <button class={styles.speedButton} onClick={() => handleSpeedChange(Math.max(0.1, manualSpeed() - 0.1))}>-</button>
+            <span class={styles.speedDisplay}>{manualSpeed().toFixed(1)}x</span>
+            <button class={styles.speedButton} onClick={() => handleSpeedChange(Math.min(24, manualSpeed() + 0.1))}>+</button>
+          </div>
+          <button class={styles.advanceButton} onClick={() => handleAdvanceTime(15)}>
+            <FaSolidForward size={12} /> 15m
+          </button>
+          <button class={styles.advanceButton} onClick={() => handleAdvanceTime(60)}>
+            <FaSolidForward size={12} /> 1h
+          </button>
+          <button class={styles.advanceButton} onClick={() => handleAdvanceTime(1440)}>
+            <FaSolidForward size={12} /> 1d
+          </button>
+          <input
+            type="datetime-local"
+            class={styles.input}
+            value={new Date(simulationStore.state.currentTime).toISOString().slice(0, 16)}
+            onInput={handleDateChange}
+          />
+        </div>
+        {errorMessage() && <div class={styles.errorMessage}>{errorMessage()}</div>}
       </header>
       <main class={styles.mainView}>
         {(() => {
           const Component = componentMap[mainView()];
-          return <Component />;
+          return <Component currentTime={simulationStore.state.currentTime} />;
         })()}
       </main>
       <div class={styles.dashboardGrid}>
@@ -125,7 +257,7 @@ const App: Component = () => {
             const Component = componentMap[key as ComponentKey];
             return (
               <div class={styles.gridItem}>
-                <Component />
+                <Component currentTime={simulationStore.state.currentTime} />
                 <button
                   class={styles.expandButton}
                   onClick={() => setMainView(key as ComponentKey)}
@@ -139,8 +271,7 @@ const App: Component = () => {
           return null;
         })}
       </div>
-      <Notifications />
- {/*      <CartoonImages /> */}
+      {/* <Notifications /> */}
     </div>
   );
 };

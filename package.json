@@ -41,6 +41,7 @@
     "@types/chart.js": "^2.9.41",
     "@viz-js/viz": "^3.8.0",
     "babel-preset-solid": "^1.8.22",
+    "chartjs-adapter-date-fns": "^3.0.0",
     "chartjs-plugin-annotation": "^3.0.1",
     "date-fns": "^3.6.0",
     "esm": "^3.2.25",

@@ -3,40 +3,42 @@ import { css } from '@emotion/css';
 import { colors } from './styles/colors';
 import { typography } from './styles/typography';
 import { spacing } from './styles/common';
+import { simulationStore } from './store/simulationStore';
 
-// Mock service to fetch grid load data
-const fetchGridLoad = async (): Promise<number> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(Math.random() * 1000 + 500); // Random load between 500-1500 kWh
-    }, 1000);
-  });
+
+
+const getStressLevel = (): number => {
+  const currentTime = simulationStore.state.currentTime;
+  const householdData = simulationStore.state.householdPowerLoad;
+  
+  const currentEntry = householdData.find(entry => entry.timestamp * 1000 <= currentTime);
+  return currentEntry ? currentEntry.stress_level : 0;
 };
 
 export const TrafficLight: Component = () => {
-  const [gridLoad, setGridLoad] = createSignal(0);
+  const [stressLevel, setStressLevel] = createSignal(0);
   const [activeLight, setActiveLight] = createSignal<'green' | 'yellow' | 'red'>('green');
 
-  const updateGridLoad = async () => {
-    const load = await fetchGridLoad();
-    setGridLoad(load);
+  const updateStressLevel = () => {
+    const level = getStressLevel();
+    setStressLevel(level);
   };
 
   createEffect(() => {
-    const load = gridLoad();
-    if (load < 800) {
+    const level = stressLevel();
+    if (level < 0) {
       setActiveLight('green');
-    } else if (load < 1200) {
+    } else if (level < 1) {
       setActiveLight('yellow');
     } else {
       setActiveLight('red');
     }
   });
 
-  // Update grid load every 5 seconds
-  setInterval(updateGridLoad, 5000);
+  // Update stress level every second
+  setInterval(updateStressLevel, 1000);
 
-  const isPeak = gridLoad() > 1200; // Assuming peak is when load is above 1200
+  const isPeak = stressLevel() > 1;
 
   const pulsingEffect = css`
     @keyframes pulse {
@@ -156,15 +158,15 @@ export const TrafficLight: Component = () => {
         </div>
       </div>
       <div class={styles.loadInfo}>
-        STRESS LEVEL: {gridLoad().toFixed(2)}
+        STRESS LEVEL: {stressLevel().toFixed(2)}
         <div class={styles.loadBar}>
           <div 
             class={styles.loadBarFill} 
-            style={{ width: `${(gridLoad() / 1500) * 100}%` }}
+            style={{ width: `${Math.min(Math.abs(stressLevel()) / 2 * 100, 100)}%` }}
             role="progressbar"
-            aria-valuenow={gridLoad()}
-            aria-valuemin={0}
-            aria-valuemax={1500}
+            aria-valuenow={stressLevel()}
+            aria-valuemin={-2}
+            aria-valuemax={2}
           ></div>
         </div>
       </div>
