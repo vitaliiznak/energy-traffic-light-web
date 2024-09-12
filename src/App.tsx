@@ -9,6 +9,7 @@ import { PriceAwareness } from './PriceAwareness';
 import { ActionableInsights } from './ActionableInsights';
 import { GamificationIncentives } from './GamificationIncentives';
 import { Notifications } from './Notifications';
+import { BillEstimator } from './BillEstimator';
 
 const App: Component = () => {
   const styles = {
@@ -65,6 +66,9 @@ const App: Component = () => {
         </div>
         <div class={styles.gridItem}>
           <GamificationIncentives />
+        </div>
+        <div class={styles.gridItem}>
+          <BillEstimator />
         </div>
       </div>
       <Notifications />
