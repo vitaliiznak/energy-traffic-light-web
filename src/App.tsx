@@ -17,20 +17,21 @@ const App: Component = () => {
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-      padding: ${spacing.md};
+      padding: ${spacing.lg};
       background-color: ${colors.background};
       color: ${colors.text};
     `,
     header: css`
-      font-size: 1.5rem;
-      font-weight: bold;
-      margin-bottom: ${spacing.md};
+      font-size: ${typography.fontSize['2xl']};
+      font-weight: ${typography.fontWeight.bold};
+      margin-bottom: ${spacing.lg};
       text-align: center;
+      color: ${colors.primary};
     `,
     dashboardGrid: css`
       display: grid;
       grid-template-columns: 1fr;
-      gap: ${spacing.md};
+      gap: ${spacing.lg};
 
       @media (min-width: 768px) {
         grid-template-columns: repeat(2, 1fr);
@@ -42,9 +43,15 @@ const App: Component = () => {
     `,
     gridItem: css`
       background-color: ${colors.surface};
-      border-radius: 8px;
-      padding: ${spacing.md};
+      border-radius: 12px;
+      padding: ${spacing.lg};
       box-shadow: 0 4px 6px ${colors.shadow};
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 8px ${colors.shadow};
+      }
     `,
   };
 

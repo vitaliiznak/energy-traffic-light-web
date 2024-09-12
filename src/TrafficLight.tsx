@@ -41,16 +41,16 @@ export const TrafficLight: Component = () => {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: ${spacing.md};
-      border-radius: 10px;
-      background-color: ${colors.background};
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: ${spacing.lg};
+      border-radius: 16px;
+      background-color: ${colors.surface};
+      box-shadow: 0 4px 6px ${colors.shadow};
     `,
     title: css`
       font-size: ${typography.fontSize.xl};
       font-weight: ${typography.fontWeight.bold};
       margin-bottom: ${spacing.md};
-      color: ${colors.text};
+      color: ${colors.primary};
     `,
     lightsContainer: css`
       display: flex;
@@ -59,11 +59,11 @@ export const TrafficLight: Component = () => {
       margin-bottom: ${spacing.md};
     `,
     light: css`
-      width: 60px;
-      height: 60px;
+      width: 70px;
+      height: 70px;
       border-radius: 50%;
       opacity: 0.3;
-      transition: opacity 0.3s ease;
+      transition: opacity 0.3s ease, box-shadow 0.3s ease;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -88,15 +88,16 @@ export const TrafficLight: Component = () => {
       box-shadow: 0 0 20px 5px currentColor;
     `,
     loadInfo: css`
-      font-size: ${typography.fontSize.md};
+      font-size: ${typography.fontSize.lg};
       margin-top: ${spacing.md};
       color: ${colors.text};
+      text-align: center;
     `,
     loadBar: css`
       width: 100%;
-      height: 20px;
-      background-color: #e0e0e0;
-      border-radius: 10px;
+      height: 24px;
+      background-color: ${colors.background};
+      border-radius: 12px;
       overflow: hidden;
       margin-top: ${spacing.sm};
     `,

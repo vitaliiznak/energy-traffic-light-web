@@ -15,17 +15,21 @@ export const ConsumptionGraph: Component = () => {
     container: css`
       display: flex;
       flex-direction: column;
+      background-color: ${colors.surface};
+      border-radius: 12px;
+      padding: ${spacing.lg};
+      box-shadow: 0 4px 6px ${colors.shadow};
     `,
     title: css`
-      font-size: ${typography.fontSize.lg};
+      font-size: ${typography.fontSize.xl};
       font-weight: ${typography.fontWeight.bold};
-      margin-bottom: ${spacing.sm};
+      margin-bottom: ${spacing.md};
       text-align: center;
+      color: ${colors.primary};
     `,
     graphContainer: css`
       height: 300px;
       width: 100%;
-      max-width: 600px;
       margin: 0 auto;
     `,
     controls: css`
@@ -36,16 +40,18 @@ export const ConsumptionGraph: Component = () => {
       margin-bottom: ${spacing.md};
     `,
     button: css`
-      padding: ${spacing.xs} ${spacing.sm};
+      padding: ${spacing.sm} ${spacing.md};
       background-color: ${colors.primary};
       color: ${colors.text};
       border: none;
-      border-radius: 4px;
+      border-radius: 20px;
       cursor: pointer;
-      transition: background-color 0.3s ease;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      font-weight: ${typography.fontWeight.medium};
 
       &:hover {
         background-color: ${colors.primaryDark};
+        transform: translateY(-2px);
       }
 
       &.active {
