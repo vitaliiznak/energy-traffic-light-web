@@ -8,7 +8,7 @@ import { spacing } from './styles/common';
 const fetchGridLoad = async (): Promise<number> => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve(Math.random() * 100);
+      resolve(Math.random() * 1000 + 500); // Random load between 500-1500 kWh
     }, 1000);
   });
 };
@@ -24,9 +24,9 @@ export const TrafficLight: Component = () => {
 
   createEffect(() => {
     const load = gridLoad();
-    if (load < 33) {
+    if (load < 800) {
       setActiveLight('green');
-    } else if (load < 66) {
+    } else if (load < 1200) {
       setActiveLight('yellow');
     } else {
       setActiveLight('red');
@@ -132,15 +132,15 @@ export const TrafficLight: Component = () => {
         </div>
       </div>
       <div class={styles.loadInfo}>
-        Current Load: {gridLoad().toFixed(2)}%
+        STRESS LEVEL: {gridLoad().toFixed(2)}
         <div class={styles.loadBar}>
           <div 
             class={styles.loadBarFill} 
-            style={{ width: `${gridLoad()}%` }}
+            style={{ width: `${(gridLoad() / 1500) * 100}%` }}
             role="progressbar"
             aria-valuenow={gridLoad()}
             aria-valuemin={0}
-            aria-valuemax={100}
+            aria-valuemax={1500}
           ></div>
         </div>
       </div>

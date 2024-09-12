@@ -79,7 +79,6 @@ export const GamificationIncentives: Component = () => {
       <h2 class={styles.title}>Energy Saver Challenge</h2>
       <div class={styles.scoreContainer}>
         <div class={styles.score}>Score: {score()}</div>
-        <div class={styles.level}>Level {level()}</div>
       </div>
       <div class={styles.progressBarContainer}>
         <div 

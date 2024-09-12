@@ -4,7 +4,7 @@ import { colors } from './styles/colors';
 import { typography } from './styles/typography';
 import { spacing } from './styles/common';
 
-export const PriceAwareness: Component = () => {
+export const EnergyInsights: Component = () => {
   const [currentPrice, setCurrentPrice] = createSignal(0.12);
   const [gridLoad, setGridLoad] = createSignal(50);
   const [potentialSavings, setPotentialSavings] = createSignal(0);
@@ -35,6 +35,29 @@ export const PriceAwareness: Component = () => {
 
   // Update grid load every 10 seconds
   setInterval(updateGridLoad, 10000);
+
+  const getInsights = () => {
+    const load = gridLoad();
+    if (load > 80) {
+      return [
+        "High grid load! Consider postponing high-energy activities.",
+        "Use smart plugs to automatically turn off devices during peak hours.",
+        "Adjust your thermostat by a few degrees to reduce energy consumption.",
+      ];
+    } else if (load > 60) {
+      return [
+        "Grid load is increasing. Be mindful of your energy usage.",
+        "Run your dishwasher and washing machine during off-peak hours.",
+        "Unplug electronics when not in use to reduce standby power consumption.",
+      ];
+    } else {
+      return [
+        "Grid load is low. This is a good time for energy-intensive tasks.",
+        "Consider charging electric vehicles or running large appliances now.",
+        "Take advantage of lower prices by pre-cooling or pre-heating your home.",
+      ];
+    }
+  };
 
   const styles = {
     container: css`
@@ -67,11 +90,11 @@ export const PriceAwareness: Component = () => {
       color: ${colors.secondary};
       margin-bottom: ${spacing.md};
     `,
-    suggestions: css`
-      font-size: ${typography.fontSize.sm};
-      color: ${colors.text};
+    insightsList: css`
+      list-style-type: none;
+      padding: 0;
     `,
-    suggestion: css`
+    insightItem: css`
       margin-bottom: ${spacing.sm};
       padding: ${spacing.sm};
       background-color: ${colors.primaryDark};
@@ -81,33 +104,24 @@ export const PriceAwareness: Component = () => {
   };
 
   return (
-    <div class={styles.container} role="region" aria-labelledby="price-awareness-title">
-      <h2 id="price-awareness-title" class={styles.title}>Price Awareness</h2>
-      <div class={styles.priceInfo} aria-live="polite">
+    <div class={styles.container}>
+      <h2 class={styles.title}>Energy Insights</h2>
+      <div class={styles.priceInfo}>
         Current Price: ${currentPrice().toFixed(2)} / kWh
       </div>
-      <div class={styles.gridLoad} aria-live="polite">
+      <div class={styles.gridLoad}>
         Grid Load: {gridLoad().toFixed(0)}%
       </div>
-      <div class={styles.savings} aria-live="polite">
+      <div class={styles.savings}>
         Potential Monthly Savings: ${potentialSavings().toFixed(2)}
       </div>
-      <div class={styles.suggestions}>
-        <h3 id="savings-suggestions">Savings Suggestions:</h3>
-        <ul aria-labelledby="savings-suggestions">
-          <li class={styles.suggestion}>
-            Shift high-energy activities to off-peak hours (typically late evening or early morning).
-          </li>
-          <li class={styles.suggestion}>
-            Use smart plugs to automatically turn off devices during peak hours.
-          </li>
-          <li class={styles.suggestion}>
-            Adjust your thermostat by a few degrees during high-price periods.
-          </li>
-        </ul>
-      </div>
+      <ul class={styles.insightsList}>
+        {getInsights().map((insight) => (
+          <li class={styles.insightItem}>{insight}</li>
+        ))}
+      </ul>
     </div>
   );
 };
 
-export default PriceAwareness;
+export default EnergyInsights;
