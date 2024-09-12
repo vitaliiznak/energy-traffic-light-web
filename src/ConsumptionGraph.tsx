@@ -10,6 +10,20 @@ export const ConsumptionGraph: Component = () => {
   let chart: Chart | undefined;
   const [viewMode, setViewMode] = createSignal<'daily' | 'weekly' | 'monthly'>('daily');
   const [gridLoadData, setGridLoadData] = createSignal<number[]>([]);
+  const [comparisonMode, setComparisonMode] = createSignal<'lastPeriod' | 'lastYear'>('lastPeriod');
+
+  const getComparisonLabel = () => {
+    switch (viewMode()) {
+      case 'daily':
+        return 'Yesterday';
+      case 'weekly':
+        return 'Last Week';
+      case 'monthly':
+        return 'Last Month';
+      default:
+        return 'Last Period';
+    }
+  };
 
   const styles = {
     container: css`
@@ -63,18 +77,22 @@ export const ConsumptionGraph: Component = () => {
   const generateMockData = (days: number) => {
     const data = [];
     const gridLoad = [];
+    const historicalData = [];
     for (let i = 0; i < days; i++) {
-      data.push(Math.random() * 5 + 1); // Random consumption between 1 and 6 kWh
-      gridLoad.push(Math.random() * 100); // Random grid load between 0 and 100%
+      data.push(Math.random() * 5 + 1);
+      gridLoad.push(Math.random() * 100);
+      historicalData.push(Math.random() * 5 + 0.5);
     }
-    return { consumptionData: data, gridLoadData: gridLoad };
+    return { consumptionData: data, gridLoadData: gridLoad, historicalData };
   };
 
   const updateChart = () => {
     if (!chart) return;
 
     const mode = viewMode();
-    let { consumptionData, gridLoadData: newGridLoadData } = generateMockData(mode === 'daily' ? 24 : mode === 'weekly' ? 7 : 30);
+    let { consumptionData, gridLoadData: newGridLoadData, historicalData } = generateMockData(
+      mode === 'daily' ? 24 : mode === 'weekly' ? 7 : 30
+    );
     setGridLoadData(newGridLoadData);
 
     const labels = {
@@ -86,11 +104,13 @@ export const ConsumptionGraph: Component = () => {
     chart.data.labels = labels[mode];
     chart.data.datasets[0].data = consumptionData;
     chart.data.datasets[1].data = newGridLoadData;
+    chart.data.datasets[2].data = historicalData;
     chart.update();
   };
 
   createEffect(() => {
     viewMode();
+    comparisonMode();
     updateChart();
   });
 
@@ -103,7 +123,7 @@ export const ConsumptionGraph: Component = () => {
         labels: [],
         datasets: [
           {
-            label: 'Energy Consumption (kWh)',
+            label: 'Current Energy Consumption (kWh)',
             data: [],
             borderColor: colors.primary,
             backgroundColor: `${colors.primary}33`,
@@ -117,6 +137,14 @@ export const ConsumptionGraph: Component = () => {
             backgroundColor: `${colors.secondary}33`,
             fill: true,
             yAxisID: 'y1',
+          },
+          {
+            label: () => comparisonMode() === 'lastPeriod' ? `${getComparisonLabel()} (kWh)` : 'Last Year (kWh)',
+            data: [],
+            borderColor: colors.warning,
+            backgroundColor: `${colors.warning}33`,
+            fill: true,
+            yAxisID: 'y',
           },
         ],
       },
@@ -153,7 +181,7 @@ export const ConsumptionGraph: Component = () => {
 
   return (
     <div class={styles.container}>
-      <h2 class={styles.title}>Energy Consumption</h2>
+      <h2 class={styles.title}>Energy Consumption Comparison</h2>
       <div class={styles.controls}>
         <button
           class={styles.button}
@@ -175,6 +203,22 @@ export const ConsumptionGraph: Component = () => {
           onClick={() => setViewMode('monthly')}
         >
           Monthly
+        </button>
+      </div>
+      <div class={styles.controls}>
+        <button
+          class={styles.button}
+          classList={{ active: comparisonMode() === 'lastPeriod' }}
+          onClick={() => setComparisonMode('lastPeriod')}
+        >
+          Compare to {getComparisonLabel()}
+        </button>
+        <button
+          class={styles.button}
+          classList={{ active: comparisonMode() === 'lastYear' }}
+          onClick={() => setComparisonMode('lastYear')}
+        >
+          Compare to Last Year
         </button>
       </div>
       <div class={styles.graphContainer}>

@@ -3,6 +3,7 @@ import { Component } from 'solid-js';
 import { css } from '@emotion/css';
 import { colors } from './styles/colors';
 import { spacing } from './styles/common';
+import { typography } from './styles/typography'; // Add this import
 import { TrafficLight } from './TrafficLight';
 import { ConsumptionGraph } from './ConsumptionGraph';
 import { PriceAwareness } from './PriceAwareness';
@@ -10,6 +11,7 @@ import { ActionableInsights } from './ActionableInsights';
 import { GamificationIncentives } from './GamificationIncentives';
 import { Notifications } from './Notifications';
 import { BillEstimator } from './BillEstimator';
+import { CarbonFootprintCalculator } from './CarbonFootprintCalculator';
 
 const App: Component = () => {
   const styles = {
@@ -76,6 +78,9 @@ const App: Component = () => {
         </div>
         <div class={styles.gridItem}>
           <BillEstimator />
+        </div>
+        <div class={styles.gridItem}>
+          <CarbonFootprintCalculator />
         </div>
       </div>
       <Notifications />
