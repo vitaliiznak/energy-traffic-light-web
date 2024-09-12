@@ -36,6 +36,29 @@ export const TrafficLight: Component = () => {
   // Update grid load every 5 seconds
   setInterval(updateGridLoad, 5000);
 
+  const isPeak = gridLoad() > 1200; // Assuming peak is when load is above 1200
+
+  const pulsingEffect = css`
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    animation: ${isPeak ? 'pulse 1s infinite' : 'none'};
+  `;
+
+  const peakIndicator = css`
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: ${colors.error};
+    color: ${colors.text};
+    font-size: ${typography.fontSize.xs};
+    padding: 2px 6px;
+    border-radius: 10px;
+    display: ${isPeak ? 'block' : 'none'};
+  `;
+
   const styles = {
     container: css`
       display: flex;
@@ -109,7 +132,8 @@ export const TrafficLight: Component = () => {
   };
 
   return (
-    <div class={styles.container} role="status" aria-live="polite">
+    <div class={`${styles.container} ${pulsingEffect}`} role="status" aria-live="polite">
+      <div class={peakIndicator}>Peak</div>
       <h2 class={styles.title} id="traffic-light-title">Grid Load Status</h2>
       <div class={styles.lightsContainer} aria-labelledby="traffic-light-title">
         <div 

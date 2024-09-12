@@ -9,7 +9,21 @@ import { mean } from 'lodash';
 interface PowerGridEntry {
   timestamp: number;  // Unix timestamp
   Wert: number;  // Kilowatt consumption
+  is_peak: boolean;
 }
+
+interface ConsumptionData {
+  timestamp: number;
+  value: number;
+  is_peak: boolean;
+}
+
+const fetchConsumptionData = async (type: 'grid' | 'household'): Promise<ConsumptionData[]> => {
+  // In a real application, this would be an API call
+  const response = await fetch(`/api/${type}-consumption`);
+  const data = await response.json();
+  return data;
+};
 
 export const ConsumptionGraph: Component = () => {
   let gridChartRef: HTMLCanvasElement | undefined;
@@ -39,7 +53,8 @@ export const ConsumptionGraph: Component = () => {
       const chunk = data.slice(i, i + factor);
       const avgTimestamp = Math.round(mean(chunk.map(entry => entry.timestamp)));
       const avgWert = mean(chunk.map(entry => entry.Wert));
-      downsampled.push({ timestamp: avgTimestamp, Wert: avgWert });
+      const isPeak = chunk.some(entry => entry.is_peak);
+      downsampled.push({ timestamp: avgTimestamp, Wert: avgWert, is_peak: isPeak });
     }
 
     return downsampled;
@@ -50,7 +65,8 @@ export const ConsumptionGraph: Component = () => {
     for (let i = 0; i < data.length; i++) {
       const window = data.slice(Math.max(0, i - windowSize), i + 1);
       const avgWert = mean(window.map(entry => entry.Wert));
-      smoothed.push({ timestamp: data[i].timestamp, Wert: avgWert });
+      const isPeak = window.some(entry => entry.is_peak);
+      smoothed.push({ timestamp: data[i].timestamp, Wert: avgWert, is_peak: isPeak });
     }
     return smoothed;
   };
@@ -156,6 +172,8 @@ export const ConsumptionGraph: Component = () => {
 
     gridChart.data.labels = labels;
     gridChart.data.datasets[0].data = filteredData.map(entry => entry.Wert);
+    gridChart.data.datasets[0].pointBackgroundColor = filteredData.map(entry => entry.is_peak ? 'red' : colors.primary);
+    gridChart.data.datasets[0].pointRadius = filteredData.map(entry => entry.is_peak ? 6 : 3);
     gridChart.options = {
       ...commonOptions,
       scales: {
@@ -200,6 +218,8 @@ export const ConsumptionGraph: Component = () => {
         backgroundColor: `${colors.secondary}33`,
         fill: true,
         pointStyle: 'triangle',
+        pointBackgroundColor: filteredData.map(entry => entry.is_peak ? 'red' : colors.secondary),
+        pointRadius: filteredData.map(entry => entry.is_peak ? 6 : 3),
       }
     ];
 
