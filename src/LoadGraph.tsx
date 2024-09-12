@@ -5,27 +5,41 @@ import { colors } from './styles/colors';
 import { typography } from './styles/typography';
 import { spacing } from './styles/common';
 import { mean } from 'lodash';
+import annotationPlugin from 'chartjs-plugin-annotation';
+
+Chart.register(annotationPlugin);
 
 interface PowerGridEntry {
   timestamp: number;  // Unix timestamp
-  Wert: number;  // Kilowatt consumption
+  Wert: number;  // Kilowatt load
   is_peak: boolean;
 }
 
-interface ConsumptionData {
+interface LoadData {
   timestamp: number;
   value: number;
   is_peak: boolean;
 }
 
-const fetchConsumptionData = async (type: 'grid' | 'household'): Promise<ConsumptionData[]> => {
-  // In a real application, this would be an API call
-  const response = await fetch(`/api/${type}-consumption`);
-  const data = await response.json();
-  return data;
+const fetchLoadData = async (type: 'grid' | 'household'): Promise<LoadData[]> => {
+  try {
+    const url = `${import.meta.env.BASE_URL}data/${type}_power_load.json`;
+    console.log(`Fetching data from: ${url}`);
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const text = await response.text();
+    console.log(`Raw response: ${text.substring(0, 100)}...`);
+    const data = JSON.parse(text);
+    return data.sort((a: LoadData, b: LoadData) => a.timestamp - b.timestamp);
+  } catch (error) {
+    console.error(`Error fetching ${type} load data:`, error);
+    return [];
+  }
 };
 
-export const ConsumptionGraph: Component = () => {
+export const LoadGraph: Component = () => {
   let gridChartRef: HTMLCanvasElement | undefined;
   let householdChartRef: HTMLCanvasElement | undefined;
   let gridChart: Chart | undefined;
@@ -36,12 +50,6 @@ export const ConsumptionGraph: Component = () => {
   const [householdLoadData, setHouseholdLoadData] = createSignal<number[]>([]);
   const [historicalHouseholdData, setHistoricalHouseholdData] = createSignal<number[]>([]);
   const [latestTimestamp, setLatestTimestamp] = createSignal<Date>(new Date());
-
-  const fetchData = async () => {
-    const response = await fetch('data/household_power_consumption.json');
-    const data: PowerGridEntry[] = await response.json();
-    return data.sort((a, b) => a.timestamp - b.timestamp);
-  };
 
   const downsampleData = (data: PowerGridEntry[], targetPoints: number): PowerGridEntry[] => {
     if (data.length <= targetPoints) return data;
@@ -79,22 +87,33 @@ export const ConsumptionGraph: Component = () => {
 
     const mode = viewMode();
     const comparison = comparisonMode();
-    const allData = await fetchData();
+    console.log('Fetching grid data...');
+    const allGridData = await fetchLoadData('grid');
+    console.log('Grid data:', allGridData);
+    console.log('Fetching household data...');
+    const allHouseholdData = await fetchLoadData('household');
+    console.log('Household data:', allHouseholdData);
     
     let filteredData: PowerGridEntry[];
     let labels: string[];
     let chartTitle: string;
 
-    const now = new Date(allData[allData.length - 1].timestamp * 1000);
+    const now = new Date(Math.max(
+      ...allGridData.map(entry => entry.timestamp * 1000),
+      ...allHouseholdData.map(entry => entry.timestamp * 1000)
+    ));
     console.log('Latest timestamp:', now);
+
+    const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
 
     const formatDate = (date: Date) => {
       return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     };
 
     if (mode === 'daily') {
-      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      filteredData = allData.filter(entry => {
+      filteredData = allGridData.filter(entry => {
         const entryDate = new Date(entry.timestamp * 1000);
         return entryDate <= now && entryDate > oneDayAgo;
       });
@@ -102,8 +121,7 @@ export const ConsumptionGraph: Component = () => {
       labels = filteredData.map(entry => new Date(entry.timestamp * 1000).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
       chartTitle = `Daily View - ${formatDate(now)}`;
     } else if (mode === 'weekly') {
-      const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      filteredData = allData.filter(entry => {
+      filteredData = allGridData.filter(entry => {
         const entryDate = new Date(entry.timestamp * 1000);
         return entryDate <= now && entryDate > oneWeekAgo;
       });
@@ -112,8 +130,7 @@ export const ConsumptionGraph: Component = () => {
       labels = filteredData.map(entry => new Date(entry.timestamp * 1000).toLocaleDateString('en-US', { weekday: 'short' }));
       chartTitle = `Weekly View - ${formatDate(oneWeekAgo)} to ${formatDate(now)}`;
     } else {
-      const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-      filteredData = allData.filter(entry => {
+      filteredData = allGridData.filter(entry => {
         const entryDate = new Date(entry.timestamp * 1000);
         return entryDate <= now && entryDate > oneMonthAgo;
       });
@@ -149,7 +166,7 @@ export const ConsumptionGraph: Component = () => {
             color: `${colors.border}33`,
           },
           ticks: {
-            callback: (value: number) => `${value} kWh`,
+            callback: (value: number) => `${value} kW`,
           },
         },
       },
@@ -191,7 +208,7 @@ export const ConsumptionGraph: Component = () => {
           ...commonOptions.scales.y,
           title: {
             display: true,
-            text: 'Grid Power Consumption (kWh)',
+            text: 'Grid Power Load (kW)',
           },
         },
       },
@@ -199,27 +216,56 @@ export const ConsumptionGraph: Component = () => {
         ...commonOptions.plugins,
         title: {
           display: true,
-          text: `Grid Consumption - ${chartTitle}`,
+          text: `Grid Load - ${chartTitle}`,
           font: {
             size: 16,
             weight: 'bold',
           },
         },
+        annotation: {
+          annotations: getPeakRegions(filteredData).map(region => ({
+            type: 'box',
+            xMin: region.start,
+            xMax: region.end,
+            backgroundColor: 'rgba(255, 99, 132, 0.25)',
+            borderColor: 'rgba(255, 99, 132, 0.8)',
+            borderWidth: 1,
+            label: {
+              display: true,
+              content: 'Peak',
+              position: 'start',
+              backgroundColor: 'rgba(255, 99, 132, 0.8)',
+              color: 'white',
+              font: {
+                size: 12,
+                weight: 'bold'
+              }
+            }
+          }))
+        }
       },
     };
     gridChart.update();
 
+    let filteredHouseholdData = allHouseholdData.filter(entry => {
+      const entryDate = new Date(entry.timestamp * 1000);
+      return entryDate <= now && entryDate > (mode === 'daily' ? oneDayAgo : mode === 'weekly' ? oneWeekAgo : oneMonthAgo);
+    });
+
+    filteredHouseholdData = downsampleData(filteredHouseholdData, mode === 'daily' ? filteredData.length : mode === 'weekly' ? 168 : 240);
+    filteredHouseholdData = smoothData(filteredHouseholdData, mode === 'daily' ? 5 : mode === 'weekly' ? 3 : 5);
+
     householdChart.data.labels = labels;
     householdChart.data.datasets = [
       {
-        label: '🏠 Current Household Power Consumption (kWh)',
-        data: filteredData.map(entry => entry.Wert),
+        label: '🏠 Current Household Power Load (kW)',
+        data: filteredHouseholdData.map(entry => entry.Wert),
         borderColor: colors.secondary,
         backgroundColor: `${colors.secondary}33`,
         fill: true,
         pointStyle: 'triangle',
-        pointBackgroundColor: filteredData.map(entry => entry.is_peak ? 'red' : colors.secondary),
-        pointRadius: filteredData.map(entry => entry.is_peak ? 6 : 3),
+        pointBackgroundColor: filteredHouseholdData.map(entry => entry.is_peak ? 'red' : colors.secondary),
+        pointRadius: filteredHouseholdData.map(entry => entry.is_peak ? 6 : 3),
       }
     ];
 
@@ -232,7 +278,7 @@ export const ConsumptionGraph: Component = () => {
       }));
 
       householdChart.data.datasets.push({
-        label: `🏠 ${comparison === 'lastPeriod' ? 'Last Period' : 'Last Year'} Household Power Consumption (kWh)`,
+        label: `🏠 ${comparison === 'lastPeriod' ? 'Last Period' : 'Last Year'} Household Power Load (kW)`,
         data: comparisonData.map(entry => entry.Wert),
         borderColor: colors.primary,
         backgroundColor: `${colors.primary}33`,
@@ -259,7 +305,7 @@ export const ConsumptionGraph: Component = () => {
           ...commonOptions.scales.y,
           title: {
             display: true,
-            text: 'Household Power Consumption (kWh)',
+            text: 'Household Power Load (kW)',
           },
         },
       },
@@ -267,12 +313,33 @@ export const ConsumptionGraph: Component = () => {
         ...commonOptions.plugins,
         title: {
           display: true,
-          text: `Household Consumption - ${chartTitle}`,
+          text: `Household Load - ${chartTitle}`,
           font: {
             size: 16,
             weight: 'bold',
           },
         },
+        annotation: {
+          annotations: getPeakRegions(filteredData).map(region => ({
+            type: 'box',
+            xMin: region.start,
+            xMax: region.end,
+            backgroundColor: 'rgba(255, 99, 132, 0.25)',
+            borderColor: 'rgba(255, 99, 132, 0.8)',
+            borderWidth: 1,
+            label: {
+              display: true,
+              content: 'Peak',
+              position: 'start',
+              backgroundColor: 'rgba(255, 99, 132, 0.8)',
+              color: 'white',
+              font: {
+                size: 12,
+                weight: 'bold'
+              }
+            }
+          }))
+        }
       },
     };
     householdChart.update();
@@ -280,6 +347,26 @@ export const ConsumptionGraph: Component = () => {
     console.log('Charts updated');
 
     updateBackgroundGrid(labels.length);
+  };
+
+  const getPeakRegions = (data: PowerGridEntry[]) => {
+    const regions = [];
+    let start = -1;
+
+    data.forEach((d, index) => {
+      if (d.is_peak && start === -1) {
+        start = index;
+      } else if (!d.is_peak && start !== -1) {
+        regions.push({ start, end: index - 1 });
+        start = -1;
+      }
+    });
+
+    if (start !== -1) {
+      regions.push({ start, end: data.length - 1 });
+    }
+
+    return regions;
   };
 
   const updateBackgroundGrid = (divisions: number) => {
@@ -326,7 +413,7 @@ export const ConsumptionGraph: Component = () => {
         labels: [],
         datasets: [
           {
-            label: '⚡ Grid Consumption (kWh)',
+            label: '⚡ Grid Load (kW)',
             data: [],
             borderColor: colors.primary, 
             backgroundColor: `${colors.primary}33`,
@@ -346,7 +433,7 @@ export const ConsumptionGraph: Component = () => {
         labels: [],
         datasets: [
           {
-            label: '🏠 Household Energy Consumption (kWh)',
+            label: '🏠 Household Power Load (kW)',
             data: [],
             borderColor: colors.secondary,
             backgroundColor: `${colors.secondary}33`,
@@ -486,9 +573,8 @@ export const ConsumptionGraph: Component = () => {
 
   return (
     <div class={styles.container}>
-      <h2 class={styles.title}>Energy Consumption</h2>
+      <h2 class={styles.title}>Power Grid Load</h2>
       <div class={styles.controlsSection}>
-        <div class={styles.controlsTitle}>View Mode</div>
         <div class={styles.controls}>
           <button
             class={styles.button}

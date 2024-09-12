@@ -6,18 +6,19 @@ import { spacing } from './styles/common';
 import { typography } from './styles/typography';
 import { FaSolidExpand } from 'solid-icons/fa';
 import { TrafficLight } from './TrafficLight';
-import { ConsumptionGraph } from './ConsumptionGraph';
+import { LoadGraph } from './LoadGraph';
 import { EnergyInsights } from './EnergyInsights';
 import { GamificationIncentives } from './GamificationIncentives';
 import { Notifications } from './Notifications';
 import { BillEstimator } from './BillEstimator';
 import { CarbonFootprintCalculator } from './CarbonFootprintCalculator';
 import { CartoonImages } from './CartoonImages';
+import { Clock } from './Clock';
 
-type ComponentKey = 'ConsumptionGraph' | 'TrafficLight' | 'GamificationIncentives' | 'BillEstimator' | 'CarbonFootprintCalculator';
+type ComponentKey = 'LoadGraph' | 'TrafficLight' | 'GamificationIncentives' | 'BillEstimator' | 'CarbonFootprintCalculator';
 
 const componentMap: Record<ComponentKey, Component<{}>> = {
-  ConsumptionGraph,
+  LoadGraph,
   TrafficLight,
   EnergyInsights,
   GamificationIncentives,
@@ -26,7 +27,7 @@ const componentMap: Record<ComponentKey, Component<{}>> = {
 };
 
 const App: Component = () => {
-  const [mainView, setMainView] = createSignal<ComponentKey>('ConsumptionGraph');
+  const [mainView, setMainView] = createSignal<ComponentKey>('LoadGraph');
 
   const styles = {
     mainContainer: css`
@@ -38,10 +39,16 @@ const App: Component = () => {
       color: ${colors.text};
     `,
     header: css`
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: ${spacing.md};
+      background-color: ${colors.primaryDark};
+      border-bottom: 2px solid ${colors.primary};
+    `,
+    title: css`
       font-size: ${typography.fontSize['2xl']};
       font-weight: ${typography.fontWeight.bold};
-      margin-bottom: ${spacing.lg};
-      text-align: center;
       color: ${colors.primary};
     `,
     mainView: css`
@@ -102,7 +109,10 @@ const App: Component = () => {
 
   return (
     <div class={styles.mainContainer}>
-      <header class={styles.header}>Energy Traffic Lights</header>
+      <header class={styles.header}>
+        <h1 class={styles.title}>Energy Traffic Lights</h1>
+        <Clock />
+      </header>
       <main class={styles.mainView}>
         {(() => {
           const Component = componentMap[mainView()];
