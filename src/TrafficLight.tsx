@@ -17,9 +17,8 @@ export const TrafficLight: Component = () => {
   const [stressLevel, setStressLevel] = createSignal(0);
   const [activeLight, setActiveLight] = createSignal<'green' | 'yellow' | 'red'>('green');
   const [currentPrice, setCurrentPrice] = createSignal(0.12);
-  const [potentialSavings, setPotentialSavings] = createSignal(0);
 
-  const updateStressLevel = () => {
+  createEffect(() => {
     const currentTime = simulationStore.state.currentTime;
     const gridPowerLoad = simulationStore.state.gridPowerLoad;
     
@@ -28,10 +27,6 @@ export const TrafficLight: Component = () => {
       setStressLevel(currentEntry.Wert);
       setActiveLight(currentEntry.is_peak ? 'red' : 'green');
     }
-  };
-
-  createEffect(() => {
-    updateStressLevel();
 
     // Update price based on active light
     let newPrice = 0.10; // Base price
@@ -46,7 +41,7 @@ export const TrafficLight: Component = () => {
     const averageConsumption = 30; // kWh per day
     const potentialReduction = 0.2; // 20% reduction
     const savings = averageConsumption * potentialReduction * (newPrice - 0.10) * 30; // Monthly savings
-    setPotentialSavings(savings);
+
   });
 
   // Update stress level every second
