@@ -192,7 +192,7 @@ export const TrafficLight: Component = () => {
 
   const getInsights = () => {
     const load = stressLevel();
-    if (load > 1) {
+    if (activeLight() === 'red') {
       return [
         "High grid load! Consider postponing high-energy activities.",
         "Use smart plugs to automatically turn off devices during peak hours.",
@@ -224,12 +224,12 @@ export const TrafficLight: Component = () => {
         >
           H
         </div>
-        <div 
+        {/* <div 
           class={`${styles.light} ${styles.yellow} ${activeLight() === 'yellow' ? styles.active : ''}`}
           aria-label={activeLight() === 'yellow' ? 'Medium load' : ''}
         >
           M
-        </div>
+        </div> */}
         <div 
           class={`${styles.light} ${styles.green} ${activeLight() === 'green' ? styles.active : ''}`}
           aria-label={activeLight() === 'green' ? 'Low load' : ''}
@@ -237,7 +237,7 @@ export const TrafficLight: Component = () => {
           L
         </div>
       </div>
-      <div class={styles.loadInfo}>
+      {/* <div class={styles.loadInfo}>
         STRESS LEVEL: {stressLevel().toFixed(2)}
         <div class={styles.loadBar}>
           <div 
@@ -249,7 +249,7 @@ export const TrafficLight: Component = () => {
             aria-valuemax={2}
           ></div>
         </div>
-      </div>
+      </div> */}
       <div class={styles.insightsContainer}>
         <div class={styles.priceInfo}>
           Current Price: {currentPrice().toFixed(2)} CHF/kWh
@@ -262,9 +262,9 @@ export const TrafficLight: Component = () => {
             <li class={styles.insightItem}>{insight}</li>
           ))}
         </ul>
-        <div class={styles.overlay}>
+        {/* <div class={styles.overlay}>
           <div class={styles.overlayText}>TO IMPLEMENT</div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
