@@ -5,8 +5,6 @@ import { typography } from './styles/typography';
 import { spacing } from './styles/common';
 import { simulationStore } from './store/simulationStore';
 
-
-
 const getStressLevel = (): number => {
   const currentTime = simulationStore.state.currentTime;
   const householdData = simulationStore.state.householdPowerLoad;
@@ -18,21 +16,37 @@ const getStressLevel = (): number => {
 export const TrafficLight: Component = () => {
   const [stressLevel, setStressLevel] = createSignal(0);
   const [activeLight, setActiveLight] = createSignal<'green' | 'yellow' | 'red'>('green');
+  const [currentPrice, setCurrentPrice] = createSignal(0.12);
+  const [potentialSavings, setPotentialSavings] = createSignal(0);
 
   const updateStressLevel = () => {
-    const level = getStressLevel();
-    setStressLevel(level);
+    const currentTime = simulationStore.state.currentTime;
+    const gridPowerLoad = simulationStore.state.gridPowerLoad;
+    
+    const currentEntry = gridPowerLoad.find(entry => entry.timestamp * 1000 <= currentTime);
+    if (currentEntry) {
+      setStressLevel(currentEntry.Wert);
+      setActiveLight(currentEntry.is_peak ? 'red' : 'green');
+    }
   };
 
   createEffect(() => {
-    const level = stressLevel();
-    if (level < 0) {
-      setActiveLight('green');
-    } else if (level < 1) {
-      setActiveLight('yellow');
-    } else {
-      setActiveLight('red');
+    updateStressLevel();
+
+    // Update price based on active light
+    let newPrice = 0.10; // Base price
+    if (activeLight() === 'red') {
+      newPrice = 0.20; // High load price
+    } else if (activeLight() === 'yellow') {
+      newPrice = 0.15; // Medium load price
     }
+    setCurrentPrice(newPrice);
+
+    // Calculate potential savings
+    const averageConsumption = 30; // kWh per day
+    const potentialReduction = 0.2; // 20% reduction
+    const savings = averageConsumption * potentialReduction * (newPrice - 0.10) * 30; // Monthly savings
+    setPotentialSavings(savings);
   });
 
   // Update stress level every second
@@ -131,12 +145,61 @@ export const TrafficLight: Component = () => {
       background-color: ${activeLight() === 'green' ? '#2ecc40' : activeLight() === 'yellow' ? '#ffdc00' : '#ff4136'};
       transition: width 0.3s ease, background-color 0.3s ease;
     `,
+    insightsContainer: css`
+      margin-top: ${spacing.lg};
+      text-align: center;
+    `,
+    priceInfo: css`
+      font-size: ${typography.fontSize['2xl']};
+      font-weight: ${typography.fontWeight.bold};
+      color: ${colors.primary};
+      margin-bottom: ${spacing.sm};
+    `,
+    savings: css`
+      font-size: ${typography.fontSize.lg};
+      color: ${colors.secondary};
+      margin-bottom: ${spacing.md};
+    `,
+    insightsList: css`
+      list-style-type: none;
+      padding: 0;
+    `,
+    insightItem: css`
+      margin-bottom: ${spacing.sm};
+      padding: ${spacing.sm};
+      background-color: ${colors.primaryDark};
+      border-radius: 4px;
+      color: ${colors.textLight};
+    `,
+  };
+
+  const getInsights = () => {
+    const load = stressLevel();
+    if (load > 1) {
+      return [
+        "High grid load! Consider postponing high-energy activities.",
+        "Use smart plugs to automatically turn off devices during peak hours.",
+        "Adjust your thermostat by a few degrees to reduce energy consumption.",
+      ];
+    } else if (load > 0) {
+      return [
+        "Grid load is increasing. Be mindful of your energy usage.",
+        "Run your dishwasher and washing machine during off-peak hours.",
+        "Unplug electronics when not in use to reduce standby power consumption.",
+      ];
+    } else {
+      return [
+        "Grid load is low. This is a good time for energy-intensive tasks.",
+        "Consider charging electric vehicles or running large appliances now.",
+        "Take advantage of lower prices by pre-cooling or pre-heating your home.",
+      ];
+    }
   };
 
   return (
     <div class={`${styles.container} ${pulsingEffect}`} role="status" aria-live="polite">
       <div class={peakIndicator}>Peak</div>
-      <h2 class={styles.title} id="traffic-light-title">Grid Load Status</h2>
+      <h2 class={styles.title} id="traffic-light-title">Energy Traffic Lights</h2>
       <div class={styles.lightsContainer} aria-labelledby="traffic-light-title">
         <div 
           class={`${styles.light} ${styles.red} ${activeLight() === 'red' ? styles.active : ''}`}
@@ -144,12 +207,12 @@ export const TrafficLight: Component = () => {
         >
           H
         </div>
-        {/* <div 
+        <div 
           class={`${styles.light} ${styles.yellow} ${activeLight() === 'yellow' ? styles.active : ''}`}
           aria-label={activeLight() === 'yellow' ? 'Medium load' : ''}
         >
           M
-        </div> */}
+        </div>
         <div 
           class={`${styles.light} ${styles.green} ${activeLight() === 'green' ? styles.active : ''}`}
           aria-label={activeLight() === 'green' ? 'Low load' : ''}
@@ -170,6 +233,21 @@ export const TrafficLight: Component = () => {
           ></div>
         </div>
       </div>
+      <div class={styles.insightsContainer}>
+        <div class={styles.priceInfo}>
+          Current Price: {currentPrice().toFixed(2)} CHF/kWh
+        </div>
+        {/* <div class={styles.savings}>
+          Potential Monthly Savings: {potentialSavings().toFixed(2)} CHF
+        </div> */}
+        <ul class={styles.insightsList}>
+          {getInsights().map((insight) => (
+            <li class={styles.insightItem}>{insight}</li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
-};
+}
+
+export default TrafficLight;

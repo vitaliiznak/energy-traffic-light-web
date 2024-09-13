@@ -124,6 +124,7 @@ export const CarbonFootprintCalculator: Component = () => {
   return (
     <div class={styles.container}>
       <h2 class={styles.title}>Jurassic Power Calculator</h2>
+      <div>How much power you consumed?</div>
       <div class={styles.inputContainer}>
         <input
           type="number"
@@ -132,7 +133,7 @@ export const CarbonFootprintCalculator: Component = () => {
           onInput={(e) => handleEnergyChange(parseFloat(e.currentTarget.value) || 0)}
           placeholder="Enter energy consumption"
         />
-        <span class={styles.unit}>kWh</span>
+        <span class={styles.unit}>kW*h</span>
       </div>
       <div class={styles.resultContainer}>
         <div class={styles.result}>{carbonFootprint().toFixed(2)} kg CO2</div>
