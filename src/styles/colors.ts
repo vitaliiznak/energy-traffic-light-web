@@ -11,6 +11,6 @@ export const colors = {
   shadow: 'rgba(0, 0, 0, 0.3)',
   warning: '#F59E0B',
   error: '#EF4444',
-  legendBackground: '#212121', // Added legend background color
-  legendText: '#212121', // Added legend text color
+  legendBackground: '#212121',
+  legendText: '#212121',
 };
