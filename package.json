@@ -10,7 +10,7 @@
     "dev": "vite",
     "serve": "vite preview",
     "predeploy": "vite build",
-    "deploy": "gh-pages -d dist"
+     "deploy": "node scripts/deploy.js"
   },
   "keywords": [],
   "author": "",
