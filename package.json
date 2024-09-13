@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "description": "Traffic Consumption Visualization",
-  "homepage": "https://vitaliiznak.github.io/traffics_lights/",
+  "homepage": "https://vitaliiznak.github.io/energy-traffic-light-web/",
   "scripts": {
     "start": "vite",
     "build": "vite build",

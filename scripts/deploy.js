@@ -11,7 +11,7 @@ const runCommand = (command) => {
   return true;
 };
 
-const repoUrl = 'git@github.com:vitaliiznak/traffics_lights.git';
+const repoUrl = 'git@github.com:vitaliiznak/energy-traffic-light-web.git';
 
 const main = () => {
   const currentDir = process.cwd();

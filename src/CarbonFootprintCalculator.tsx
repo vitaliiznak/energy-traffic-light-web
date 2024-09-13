@@ -38,11 +38,11 @@ const DinosaurCarousel: Component<{ energy: number }> = (props) => {
     carouselContainer: css`
       position: relative;
       width: 100%;
-      height: 500px;
+      height: 550px;
       background-color: ${colors.surfaceLight};
       border-radius: 16px;
       box-shadow: 0 4px 6px ${colors.shadow};
-      margin-bottom: ${spacing.xl};
+      margin-bottom: ${spacing.md};
       overflow: hidden;
     `,
     carouselItem: css`
@@ -56,40 +56,52 @@ const DinosaurCarousel: Component<{ energy: number }> = (props) => {
       justify-content: space-between;
       align-items: center;
       transition: transform 0.5s ease-in-out;
-      padding: ${spacing.xl} ${spacing.lg};
+      padding: ${spacing.sm} ${spacing.xs} ${spacing.lg};
     `,
     emojiContainer: css`
-      font-size: 120px;
-      margin-bottom: ${spacing.lg};
+      font-size: 100px;
+      margin-bottom: ${spacing.xxs};
     `,
     infoContainer: css`
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
     `,
     dinoName: css`
-      font-size: ${typography.fontSize.xxl};
+      font-size: ${typography.fontSize.xl};
       font-weight: ${typography.fontWeight.bold};
       color: ${colors.primary};
-      margin-bottom: ${spacing.md};
+      margin-bottom: ${spacing.sm};
     `,
     dinoInfo: css`
-      font-size: ${typography.fontSize.xl};
+      font-size: ${typography.fontSize.lg};
       color: ${colors.text};
-      margin-bottom: ${spacing.lg};
+      margin-bottom: ${spacing.md};
+    `,
+    dinoJokeContainer: css`
+      flex-grow: 1;
+      overflow-y: auto;
+      padding-right: ${spacing.xs};
+      margin-bottom: ${spacing.md};
+      
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+      &::-webkit-scrollbar-track {
+        background: ${colors.surfaceLight};
+      }
+      &::-webkit-scrollbar-thumb {
+        background-color: ${colors.primary}66;
+        border-radius: 3px;
+      }
     `,
     dinoJoke: css`
-      font-size: ${typography.fontSize.lg};
-      color: ${colors.textLight};
-      line-height: 1.6;
-      max-width: 90%;
-      margin: 0 auto;
-    `,
-    generalInfo: css`
       font-size: ${typography.fontSize.md};
       color: ${colors.textLight};
-      text-align: center;
-      margin-top: ${spacing.md};
       line-height: 1.4;
-      font-style: italic;
+      text-align: left;
+      padding: 0 ${spacing.sm};
     `,
     carouselButton: css`
       position: absolute;
@@ -136,11 +148,9 @@ const DinosaurCarousel: Component<{ energy: number }> = (props) => {
             <div class={styles.dinoInfo}>
               {calculateDinoCount(dino)} {dino.name}(s) could power your home for a day!
             </div>
-            <div class={styles.dinoJoke}>{dino.joke}</div>
-          </div>
-          <div class={styles.generalInfo}>
-            Remember, these dinos gave their lives to become the fossil fuels we use today. 
-            Let's not make their sacrifice in vain – use energy wisely!
+            <div class={styles.dinoJokeContainer}>
+              <div class={styles.dinoJoke}>{dino.joke}</div>
+            </div>
           </div>
         </div>
       ))}
@@ -193,12 +203,25 @@ export const CarbonFootprintCalculator: Component = () => {
       margin-bottom: ${spacing.xl};
       font-size: ${typography.fontSize.xxxl};
     `,
-    introJoke: css`
-      font-size: ${typography.fontSize.lg};
-      color: ${colors.textLight};
-      text-align: center;
+    introContainer: css`
+      background-color: ${colors.primaryLight};
+      border-radius: 16px;
+      padding: ${spacing.md} ${spacing.lg};
       margin-bottom: ${spacing.xl};
-      line-height: 1.6;
+      text-align: center;
+      box-shadow: 0 4px 6px ${colors.shadow};
+    `,
+    introText: css`
+      font-size: ${typography.fontSize.lg};
+      color: ${colors.primary};
+      font-weight: ${typography.fontWeight.bold};
+      line-height: 1.5;
+    `,
+    introJoke: css`
+      font-size: ${typography.fontSize.md};
+      color: ${colors.textLight};
+      margin-top: ${spacing.sm};
+      line-height: 1.4;
       font-style: italic;
     `,
     inputContainer: css`
@@ -253,10 +276,16 @@ export const CarbonFootprintCalculator: Component = () => {
   return (
     <div class={styles.container}>
       <h2 class={styles.title}>Jurassic Power Calculator</h2>
-      <div class={styles.introJoke}>
-        Welcome to the Jurassic Power Calculator, where we measure energy in extinct reptiles! 
-        Because nothing says "I care about the environment" like burning the remains of creatures 
-        that roamed the Earth millions of years ago. Let's see how many dinos you're using to power your Netflix binge!
+      <div class={styles.introContainer}>
+        <p class={styles.introText}>
+          Remember, these dinos gave their lives to become the fossil fuels we use today. 
+          Let's not make their sacrifice in vain – use energy wisely!
+        </p>
+        <p class={styles.introJoke}>
+          Welcome to the Jurassic Power Calculator, where we measure energy in extinct reptiles! 
+          Because nothing says "I care about the environment" like burning the remains of creatures 
+          that roamed the Earth millions of years ago. Let's see how many dinos you're using to power your Netflix binge!
+        </p>
       </div>
       <div class={styles.inputContainer}>
         <input
