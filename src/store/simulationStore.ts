@@ -6,6 +6,7 @@ interface PowerLoadEntry {
   Wert: number;
   is_peak: boolean;
 }
+const defaultStartTime = new Date("2024-09-10T18:00:00").getTime()
 
 interface SimulationState {
   currentTime: number;
@@ -13,14 +14,16 @@ interface SimulationState {
   householdPowerLoad: PowerLoadEntry[];
   allGridPowerLoad: PowerLoadEntry[];
   allHouseholdPowerLoad: PowerLoadEntry[];
+  gridStatus: 'peak' | 'normal';
 }
 
 const [state, setState] = createStore<SimulationState>({
-  currentTime: new Date("2024-07-10T00:00:00").getTime(),
+  currentTime: defaultStartTime,
   gridPowerLoad: [],
   householdPowerLoad: [],
   allGridPowerLoad: [],
   allHouseholdPowerLoad: [],
+  gridStatus: 'normal',
 });
 
 const filterLast24Hours = (data: PowerLoadEntry[], currentTime: number): PowerLoadEntry[] => {
@@ -33,6 +36,7 @@ export const simulationStore = {
     return state;
   },
   setCurrentTime(time: number) {
+    console.log('here setCurrentTime', time)
     setState("currentTime", time);
     setState({
       gridPowerLoad: filterLast24Hours(state.allGridPowerLoad, time),
@@ -62,11 +66,14 @@ export const simulationStore = {
     householdData = householdData.slice(0, householdCutoffIndex === -1 ? undefined : householdCutoffIndex);
 
     setState({
-      currentTime: mostRecentOverlap * 1000, // Convert to milliseconds
+      currentTime: defaultStartTime, // Convert to milliseconds
       allGridPowerLoad: gridData,
       allHouseholdPowerLoad: householdData,
-      gridPowerLoad: filterLast24Hours(gridData, mostRecentOverlap * 1000),
-      householdPowerLoad: filterLast24Hours(householdData, mostRecentOverlap * 1000),
+      gridPowerLoad: filterLast24Hours(gridData, defaultStartTime),
+      householdPowerLoad: filterLast24Hours(householdData, defaultStartTime),
     });
+  },
+  updateGridStatus(isPeak: boolean) {
+    setState("gridStatus", isPeak ? 'peak' : 'normal');
   },
 };

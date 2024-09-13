@@ -5,42 +5,27 @@ import { typography } from './styles/typography';
 import { spacing } from './styles/common';
 import { simulationStore } from './store/simulationStore';
 
-const getStressLevel = (): number => {
-  const currentTime = simulationStore.state.currentTime;
-  const householdData = simulationStore.state.householdPowerLoad;
-  
-  const currentEntry = householdData.find(entry => entry.timestamp * 1000 <= currentTime);
-  return currentEntry ? currentEntry.stress_level : 0;
-};
 
 export const TrafficLight: Component = () => {
   const [stressLevel, setStressLevel] = createSignal(0);
-  const [activeLight, setActiveLight] = createSignal<'green' | 'yellow' | 'red'>('green');
+  const [activeLight, setActiveLight] = createSignal<'green' | 'red'>('green');
   const [currentPrice, setCurrentPrice] = createSignal(0.12);
 
+  const getGridPowerLoad = () => simulationStore.state.gridPowerLoad;
+
   createEffect(() => {
-    const currentTime = simulationStore.state.currentTime;
-    const gridPowerLoad = simulationStore.state.gridPowerLoad;
-    
-    const currentEntry = gridPowerLoad.find(entry => entry.timestamp * 1000 <= currentTime);
-    if (currentEntry) {
-      setStressLevel(currentEntry.Wert);
-      setActiveLight(currentEntry.is_peak ? 'red' : 'green');
-    }
+    const gridPowerLoad = getGridPowerLoad();
+    const lastDataPoint = gridPowerLoad[gridPowerLoad.length - 1];
+    console.log('TrafficLight effect: gridPowerLoad lastDataPoint', lastDataPoint);
+    const gridStatus = lastDataPoint ? (lastDataPoint.is_peak ? 'peak' : 'normal') : 'normal';
+    setActiveLight(gridStatus === 'peak' ? 'red' : 'green');
 
     // Update price based on active light
-    let newPrice = 0.10; // Base price
-    if (activeLight() === 'red') {
-      newPrice = 0.20; // High load price
-    } else if (activeLight() === 'yellow') {
-      newPrice = 0.15; // Medium load price
-    }
+    let newPrice = gridStatus === 'peak' ? 0.20 : 0.10;
     setCurrentPrice(newPrice);
 
-
-
+    console.log('TrafficLight updated:', { gridStatus, activeLight: activeLight(), currentPrice: currentPrice() });
   });
-
 
   const isPeak = stressLevel() > 1;
 

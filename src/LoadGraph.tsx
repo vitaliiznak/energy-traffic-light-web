@@ -301,6 +301,12 @@ export const LoadGraph: Component = () => {
     householdChart.update();
 
     console.log('Charts updated');
+
+    // Update TrafficLight component
+    const currentEntry = filteredGridPowerLoadData.find(entry => entry.timestamp * 1000 <= currentTime);
+    if (currentEntry) {
+      simulationStore.updateGridStatus(currentEntry.is_peak);
+    }
   };
 
   const getPeakRegions = (data: PowerGridEntry[]) => {

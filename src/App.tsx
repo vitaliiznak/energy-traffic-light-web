@@ -120,7 +120,7 @@ const App: Component = () => {
       <main class={styles.mainView}>
         {(() => {
           const Component = componentMap[mainView()];
-          return <Component currentTime={simulationStore.state.currentTime} />;
+          return <Component currentTime={() => simulationStore.state.currentTime} />;
         })()}
       </main>
       <div class={styles.dashboardGrid}>
