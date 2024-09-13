@@ -80,12 +80,12 @@ export const TimeSimulator: Component<{ onTimeUpdate: (newTime: number) => void 
   const styles = {
     container: css`
       position: fixed;
-      top: 60px; // Adjust this value based on the height of your actual clock
+      top: 60px; 
       right: ${spacing.md};
       border: 2px dashed ${colors.border};
       border-radius: 8px;
       padding: ${spacing.md};
-      background-color: ${colors.surfaceLight}B3; // Added 70% opacity (B3 in hex is ~70% in decimal)
+      background-color: ${colors.surfaceLight}B3;
       display: flex;
       flex-direction: column;
       align-items: center;

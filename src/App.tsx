@@ -57,7 +57,7 @@ const App: Component = () => {
     mainView: css`
       background-color: ${colors.surface};
       border-radius: 12px;
-      padding: ${spacing.lg};
+      padding: ${spacing.xs};
       box-shadow: 0 4px 6px ${colors.shadow};
       margin-bottom: ${spacing.lg};
     `,
@@ -77,7 +77,7 @@ const App: Component = () => {
     gridItem: css`
       background-color: ${colors.surface};
       border-radius: 12px;
-      padding: ${spacing.lg};
+      padding: ${spacing.xs};
       box-shadow: 0 4px 6px ${colors.shadow};
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       position: relative;

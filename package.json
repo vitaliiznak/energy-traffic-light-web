@@ -2,7 +2,7 @@
   "name": "taffic_lights",
   "version": "1.0.0",
   "main": "index.js",
-  "description": "Trafic Consumption Visualization",
+  "description": "Traffic Consumption Visualization",
   "homepage": "https://vitaliiznak.github.io/traffics_lights/",
   "scripts": {
     "start": "vite",
