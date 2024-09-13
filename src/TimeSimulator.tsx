@@ -66,7 +66,10 @@ export const TimeSimulator: Component<{ onTimeUpdate: (newTime: number) => void 
 
   const handleDateChange = (event: Event) => {
     const input = event.target as HTMLInputElement;
-    const newDate = new Date(input.value);
+    const [datePart, timePart] = input.value.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hours, minutes] = timePart.split(':').map(Number);
+    const newDate = new Date(year, month - 1, day, hours, minutes);
     if (!isNaN(newDate.getTime())) {
       jumpToTime(newDate.getTime());
     }
@@ -209,7 +212,7 @@ export const TimeSimulator: Component<{ onTimeUpdate: (newTime: number) => void 
         <input
           type="datetime-local"
           class={styles.input}
-          value={new Date(simulationStore.state.currentTime).toISOString().slice(0, 16)}
+          value={new Date(simulationStore.state.currentTime).toLocaleString('sv-SE', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).replace(' ', 'T')}
           onInput={handleDateChange}
         />
       </div>
