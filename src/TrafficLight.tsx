@@ -37,15 +37,10 @@ export const TrafficLight: Component = () => {
     }
     setCurrentPrice(newPrice);
 
-    // Calculate potential savings
-    const averageConsumption = 30; // kWh per day
-    const potentialReduction = 0.2; // 20% reduction
-    const savings = averageConsumption * potentialReduction * (newPrice - 0.10) * 30; // Monthly savings
+
 
   });
 
-  // Update stress level every second
-  setInterval(updateStressLevel, 1000);
 
   const isPeak = stressLevel() > 1;
 
