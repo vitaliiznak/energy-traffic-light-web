@@ -1,4 +1,4 @@
-import { Component, createSignal, onMount, createEffect, onCleanup } from 'solid-js';
+import { Component, onMount, createEffect, onCleanup } from 'solid-js';
 import { Chart, registerables } from 'chart.js';
 import { css } from '@emotion/css';
 import { colors } from './styles/colors';
@@ -8,6 +8,7 @@ import annotationPlugin from 'chartjs-plugin-annotation';
 import { simulationStore } from './store/simulationStore';
 import 'chartjs-adapter-date-fns';
 import { de } from 'date-fns/locale';
+import { arrowDown } from 'chartjs-plugin-annotation';
 
 Chart.register(annotationPlugin);
 
@@ -56,6 +57,7 @@ export const LoadGraph: Component = () => {
     const now = new Date(currentTime);
     console.log('Current simulated time:', now);
     const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const futureTime = new Date(now.getTime() + 4 * 60 * 60 * 1000); // 4 hours in the future
 
     const formatDate = (date: Date) => {
       return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
@@ -66,7 +68,7 @@ export const LoadGraph: Component = () => {
       return entryDate <= now && entryDate > oneDayAgo;
     });
 
-    const labels = Array.from({ length: 24 }, (_, i) => {
+    const labels = Array.from({ length: 30 }, (_, i) => {
       const date = new Date(oneDayAgo.getTime() + i * 60 * 60 * 1000);
       return date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     });
@@ -86,7 +88,7 @@ export const LoadGraph: Component = () => {
             }
           },
           min: oneDayAgo.getTime(),
-          max: now.getTime(),
+          max: futureTime.getTime(),
           grid: {
             display: false,
           },
@@ -120,9 +122,50 @@ export const LoadGraph: Component = () => {
             pointStyle: 'circle',
           },
         },
+        annotation: {
+          annotations: [
+            {
+              type: 'line',
+              xMin: now,
+              xMax: now,
+              borderColor: '#00BFFF',
+              borderWidth: 2,
+              label: {
+                content: 'Now',
+                display: true,
+                position: 'start',
+                yAdjust: -20,
+                backgroundColor: 'rgba(0, 191, 255, 0.8)',
+                color: 'white',
+                font: {
+                  size: 12,
+                  weight: 'bold'
+                }
+              }
+            },
+            {
+              type: 'point',
+              xValue: now,
+              yValue: 'bottom',
+              backgroundColor: '#00BFFF',
+              radius: 0,
+              yAdjust: 10,
+              yScaleID: 'y',
+              label: {
+                enabled: true,
+                content: '▼',
+                font: {
+                  size: 20
+                },
+                color: '#00BFFF'
+              }
+            }
+          ]
+        }
       },
     };
 
+    // Update grid chart
     gridChart.data.labels = labels;
     gridChart.data.datasets[0].data = filteredGridPowerLoadData.map(entry => ({
       x: entry.timestamp * 1000,
@@ -153,30 +196,36 @@ export const LoadGraph: Component = () => {
           },
         },
         annotation: {
-          annotations: getPeakRegions(filteredGridPowerLoadData).map(region => ({
-            type: 'box',
-            xMin: region.start,
-            xMax: region.end,
-            backgroundColor: 'rgba(255, 99, 132, 0.25)',
-            borderColor: 'rgba(255, 99, 132, 0.8)',
-            borderWidth: 1,
-            label: {
-              display: true,
-              content: 'Peak',
-              position: 'start',
-              backgroundColor: 'rgba(255, 99, 132, 0.8)',
-              color: 'white',
-              font: {
-                size: 12,
-                weight: 'bold'
+          annotations: [
+            ...commonOptions.plugins.annotation.annotations,
+            ...getPeakRegions(filteredGridPowerLoadData).map(region => ({
+              type: 'box',
+              xMin: region.start,
+              xMax: region.end,
+              yMin: 0,
+              yMax: 'max',
+              backgroundColor: 'rgba(255, 99, 132, 0.25)',
+              borderColor: 'rgba(255, 99, 132, 0.8)',
+              borderWidth: 1,
+              label: {
+                display: true,
+                content: 'Peak',
+                position: 'start',
+                backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                color: 'white',
+                font: {
+                  size: 12,
+                  weight: 'bold'
+                }
               }
-            }
-          }))
+            }))
+          ]
         }
       },
     };
     gridChart.update();
 
+    // Update household chart (similar changes as grid chart)
     const filteredHouseholdData = householdPowerLoad.filter(entry => {
       const entryDate = new Date(entry.timestamp * 1000);
       return entryDate <= now && entryDate > oneDayAgo;
@@ -222,25 +271,30 @@ export const LoadGraph: Component = () => {
           },
         },
         annotation: {
-          annotations: getPeakRegions(filteredGridPowerLoadData).map(region => ({
-            type: 'box',
-            xMin: region.start,
-            xMax: region.end,
-            backgroundColor: 'rgba(255, 99, 132, 0.25)',
-            borderColor: 'rgba(255, 99, 132, 0.8)',
-            borderWidth: 1,
-            label: {
-              display: true,
-              content: 'Peak',
-              position: 'start',
-              backgroundColor: 'rgba(255, 99, 132, 0.8)',
-              color: 'white',
-              font: {
-                size: 12,
-                weight: 'bold'
+          annotations: [
+            ...commonOptions.plugins.annotation.annotations,
+            ...getPeakRegions(filteredHouseholdData).map(region => ({
+              type: 'box',
+              xMin: region.start,
+              xMax: region.end,
+              yMin: 0,
+              yMax: 'max',
+              backgroundColor: 'rgba(255, 99, 132, 0.25)',
+              borderColor: 'rgba(255, 99, 132, 0.8)',
+              borderWidth: 1,
+              label: {
+                display: true,
+                content: 'Peak',
+                position: 'start',
+                backgroundColor: 'rgba(255, 99, 132, 0.8)',
+                color: 'white',
+                font: {
+                  size: 12,
+                  weight: 'bold'
+                }
               }
-            }
-          }))
+            }))
+          ]
         }
       },
     };
@@ -255,15 +309,15 @@ export const LoadGraph: Component = () => {
 
     data.forEach((d, index) => {
       if (d.is_peak && start === -1) {
-        start = index;
+        start = d.timestamp * 1000;
       } else if (!d.is_peak && start !== -1) {
-        regions.push({ start, end: index - 1 });
+        regions.push({ start, end: data[index - 1].timestamp * 1000 });
         start = -1;
       }
     });
 
     if (start !== -1) {
-      regions.push({ start, end: data.length - 1 });
+      regions.push({ start, end: data[data.length - 1].timestamp * 1000 });
     }
 
     return regions;
@@ -357,6 +411,9 @@ export const LoadGraph: Component = () => {
               pointStyle: 'circle',
             },
           },
+          annotation: {
+            annotations: []
+          }
         },
       },
     });
@@ -378,12 +435,54 @@ export const LoadGraph: Component = () => {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        scales: {
+          x: {
+            type: 'time',
+            time: {
+              unit: 'hour',
+              displayFormats: {
+                hour: 'HH:mm'
+              }
+            },
+            title: {
+              display: true,
+              text: 'Time',
+            },
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: `${colors.border}33`,
+            },
+            ticks: {
+              callback: (value: number) => `${value} kW`,
+            },
+          },
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top' as const,
+            labels: {
+              color: colors.text,
+              font: {
+                size: 12,
+                family: typography.fontFamily,
+              },
+              usePointStyle: true,
+              pointStyle: 'circle',
+            },
+          },
+          annotation: {
+            annotations: []
+          }
+        },
       },
     });
 
     console.log('Charts initialized');
     const { currentTime, gridPowerLoad, householdPowerLoad } = simulationStore.state;
-    updateCharts(currentTime, gridPowerLoad, householdPowerLoad );
+    updateCharts(currentTime, gridPowerLoad, householdPowerLoad);
     resize();
 
     window.addEventListener('resize', resize);

@@ -5,15 +5,12 @@ import { colors } from './styles/colors';
 import { spacing } from './styles/common';
 import { typography } from './styles/typography';
 import { commonStyles } from './styles/common';
-import { FaSolidExpand, FaSolidPlay, FaSolidPause, FaSolidForward } from 'solid-icons/fa';
 import { TrafficLight } from './TrafficLight';
 import { LoadGraph } from './LoadGraph';
 import { EnergyInsights } from './EnergyInsights';
-import { GamificationIncentives } from './GamificationIncentives';
-import { Notifications } from './Notifications';
+
 import { BillEstimator } from './BillEstimator';
 import { CarbonFootprintCalculator } from './CarbonFootprintCalculator';
-import { CartoonImages } from './CartoonImages';
 import { Clock } from './Clock';
 import { createTimeSimulator } from './TimeSimulator';
 import { simulationStore } from './store/simulationStore';
@@ -220,7 +217,7 @@ const App: Component = () => {
         <Clock currentTime={simulationStore.state.currentTime} />
         <div class={styles.timeControls}>
           <button class={styles.playPauseButton} onClick={handlePlayPause} title={isPlaying() ? 'Pause' : 'Play'}>
-            {isPlaying() ? <FaSolidPause size={20} /> : <FaSolidPlay size={20} />}
+            <i class={`fas ${isPlaying() ? "fa-pause" : "fa-play"}`} style="font-size: 20px;"></i>
           </button>
           <div class={styles.speedControl}>
             <button class={styles.speedButton} onClick={() => handleSpeedChange(Math.max(0.1, manualSpeed() - 0.1))}>-</button>
@@ -228,13 +225,13 @@ const App: Component = () => {
             <button class={styles.speedButton} onClick={() => handleSpeedChange(Math.min(24, manualSpeed() + 0.1))}>+</button>
           </div>
           <button class={styles.advanceButton} onClick={() => handleAdvanceTime(15)}>
-            <FaSolidForward size={12} /> 15m
+            <i class="fas fa-forward" style="font-size: 12px;"></i> 15m
           </button>
           <button class={styles.advanceButton} onClick={() => handleAdvanceTime(60)}>
-            <FaSolidForward size={12} /> 1h
+            <i class="fas fa-forward" style="font-size: 12px;"></i> 1h
           </button>
           <button class={styles.advanceButton} onClick={() => handleAdvanceTime(1440)}>
-            <FaSolidForward size={12} /> 1d
+            <i class="fas fa-forward" style="font-size: 12px;"></i> 1d
           </button>
           <input
             type="datetime-local"
@@ -263,7 +260,7 @@ const App: Component = () => {
                   onClick={() => setMainView(key as ComponentKey)}
                   title="Expand to main view"
                 >
-                  <FaSolidExpand size={16} />
+                  <i class="fas fa-expand" style="font-size: 16px;"></i>
                 </button>
               </div>
             );
@@ -271,7 +268,6 @@ const App: Component = () => {
           return null;
         })}
       </div>
-      {/* <Notifications /> */}
     </div>
   );
 };

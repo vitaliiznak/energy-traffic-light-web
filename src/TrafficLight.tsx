@@ -144,12 +144,12 @@ export const TrafficLight: Component = () => {
         >
           H
         </div>
-        <div 
+        {/* <div 
           class={`${styles.light} ${styles.yellow} ${activeLight() === 'yellow' ? styles.active : ''}`}
           aria-label={activeLight() === 'yellow' ? 'Medium load' : ''}
         >
           M
-        </div>
+        </div> */}
         <div 
           class={`${styles.light} ${styles.green} ${activeLight() === 'green' ? styles.active : ''}`}
           aria-label={activeLight() === 'green' ? 'Low load' : ''}

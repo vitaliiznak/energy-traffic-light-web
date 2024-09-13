@@ -2,7 +2,6 @@ import { Component } from 'solid-js';
 import { css } from '@emotion/css';
 import { colors } from './styles/colors';
 import { typography } from './styles/typography';
-import { FaSolidClock } from 'solid-icons/fa';
 import { simulationStore } from './store/simulationStore';
 
 export const Clock: Component = () => {
@@ -44,7 +43,7 @@ export const Clock: Component = () => {
 
   return (
     <div class={styles.clockContainer}>
-      <FaSolidClock class={styles.icon} />
+      <i class="fas fa-clock" style={styles.icon}></i>
       <div class={styles.dateTimeWrapper}>
         <span class={styles.time}>{formatDateTime(simulationStore.state.currentTime).time}</span>
         <span class={styles.date}>{formatDateTime(simulationStore.state.currentTime).date}</span>
