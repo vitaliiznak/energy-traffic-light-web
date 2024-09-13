@@ -171,6 +171,23 @@ export const TrafficLight: Component = () => {
       border-radius: 4px;
       color: ${colors.textLight};
     `,
+    overlay: css`
+      position: absolute;
+      top: 180px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    `,
+    overlayText: css`
+      color: ${colors.textLight};
+      font-size: ${typography.fontSize['3xl']};
+      font-weight: ${typography.fontWeight.bold};
+    `,
   };
 
   const getInsights = () => {
@@ -245,6 +262,9 @@ export const TrafficLight: Component = () => {
             <li class={styles.insightItem}>{insight}</li>
           ))}
         </ul>
+        <div class={styles.overlay}>
+          <div class={styles.overlayText}>TO IMPLEMENT</div>
+        </div>
       </div>
     </div>
   );
